@@ -92,6 +92,14 @@ def _fake_attempt(db: Session, user: User, test: Test, accuracy: float, when: da
         total += 1
     a.raw_score, a.max_score = correct, total
     a.band = raw_to_band(test.skill, correct, total, test.exam_type)
+    day = when.date()
+    row = db.scalar(select(UserStatistics).where(UserStatistics.user_id == user.id, UserStatistics.date == day))
+    if not row:
+        row = UserStatistics(user_id=user.id, date=day, study_minutes=0, tests_completed=0, ai_requests=0, words_reviewed=0,
+                             games_played=0, game_points=0, tasks_completed=0)
+        db.add(row)
+    row.tests_completed += 1
+    row.study_minutes += test.duration_min
 
 
 def seed_demo_history(db: Session, user: User, premium: bool) -> None:
@@ -112,6 +120,7 @@ def seed_demo_history(db: Session, user: User, premium: bool) -> None:
             db.add(UserStatistics(user_id=user.id, date=d, study_minutes=rnd.randint(20, 90), tests_completed=0,
                                   ai_requests=rnd.randint(0, 5), words_reviewed=rnd.randint(0, 20), games_played=rnd.randint(0, 2),
                                   game_points=rnd.randint(0, 80), tasks_completed=rnd.randint(1, 3)))
+    db.flush()
     tests = {t.title: t for t in db.scalars(select(Test))}
     plan = [("Listening Practice 1", 0.55, 24), ("Reading Practice 1", 0.5, 20), ("Listening Practice 1", 0.7, 9),
             ("Reading Practice 1", 0.68, 5), ("Reading Practice 3", 0.8, 3)]
