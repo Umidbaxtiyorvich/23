@@ -39,7 +39,7 @@ const MODES = {
   translate: "TARJIMA MASHQI: o'quvchiga o'zbekcha gap bering, u inglizchaga tarjima qilsin. Tekshiring, xatolarni tushuntiring, to'g'ri variantni bering va keyingi gapni bering.",
 };
 
-function systemPrompt({ level, mode, topic, name }) {
+function systemPrompt({ level, mode, topic, name, voice }) {
   return `Siz "Ustoz" — o'zbek tilida so'zlashuvchilar uchun mehribon, sabrli va kuchli ingliz tili o'qituvchisisiz.
 
 ASOSIY QOIDALAR:
@@ -48,6 +48,7 @@ ASOSIY QOIDALAR:
 - Joriy rejim: ${MODES[mode] || MODES.chat}
 ${topic ? `- Mavzu / vaziyat: ${topic}` : ""}
 ${name ? `- O'quvchining ismi: ${name}. Unga ismi bilan murojaat qiling.` : ""}
+${voice ? `- OVOZLI REJIM: bu jonli ovozli suhbat, javobingiz ovoz bilan o'qib beriladi. Faqat 1-3 ta qisqa gap bilan javob bering. Markdown, ro'yxat, emoji, ❌/✅ va {{ }} belgilarini ISHLATMANG. Xatoni og'zaki tuzating, masalan: "Siz 'I go yesterday' dedingiz, to'g'risi: I went yesterday." O'zbekcha va inglizcha gaplarni bitta gap ichida aralashtirmang — har birini alohida gap qilib ayting. O'quvchining nutqi mikrofondan matnga aylantirilgan, shuning uchun imlo va tinish belgilari xatolariga e'tibor bermang.` : ""}
 - O'quvchi inglizcha yozib xato qilsa, avval qisqa "✏️ Tuzatish:" qismida xatoni ko'rsating: ❌ noto'g'ri → ✅ to'g'ri va bir gap bilan o'zbekcha sababini ayting. Keyin suhbatni davom ettiring.
 - Yangi yoki muhim inglizcha so'z/ibora ishlatsangiz, uni {{english = o'zbekcha}} ko'rinishida belgilang (masalan: {{appointment = uchrashuv, qabul}}). Bir javobda 1-4 tadan ortiq belgilamang.
 - Javoblar qisqa va tushunarli bo'lsin (odatda 3-8 qator), suhbat ko'rinishida. Uzun ma'ruza o'qimang.
@@ -94,12 +95,13 @@ async function handleChat(req, res) {
 
   const params = {
     model: MODEL,
-    max_tokens: 4000,
+    max_tokens: data.voice === true ? 800 : 4000,
     system: systemPrompt({
       level: data.level,
       mode: data.mode,
       topic: typeof data.topic === "string" ? data.topic.slice(0, 300) : "",
       name: typeof data.name === "string" ? data.name.slice(0, 40) : "",
+      voice: data.voice === true,
     }),
     output_config: { effort: "low" }, // suhbat uchun tez javob
     messages,

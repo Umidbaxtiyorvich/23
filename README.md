@@ -8,6 +8,7 @@ O'zbek tilida gaplashadigan AI ustoz bilan ingliz tilini o'rganish sayti (kirgan
 - **📚 Darslar:** A1 dan C1 gacha har darajada 10 tadan dars; yakunlangan darslar belgilanadi.
 - **🏠 Kunlik reja:** vazifalar, XP, ketma-ket kunlar (🔥 streak), progress.
 - **🃏 Lug'at:** suhbatdagi so'z chiplarini bossangiz lug'atga qo'shiladi; kartochkalar bilan takrorlash (Leitner usuli).
+- **📞 Ovozli suhbat:** suhbat oynasidagi "📞 Ovozli" tugmasi — qo'ng'iroqdagidek gaplashasiz: siz gapirasiz, Ustoz eshitib, o'zbekcha va inglizcha ovoz bilan javob beradi, keyin yana sizni tinglaydi. Ustoz gapirayotganda doirani bossangiz to'xtaydi. Gapirish tilini (English / O'zbekcha) tanlash mumkin.
 - **🎤 Ovoz:** mikrofon orqali inglizcha/o'zbekcha gapirish, 🔊 javoblarning inglizcha qismini o'qib berish (Chrome tavsiya etiladi).
 - Telefon va kompyuterga moslashgan, tungi rejim avtomatik.
 - `?target=B2&goal=study` kabi URL parametrlari bilan kelgan foydalanuvchi uchun daraja/maqsad avtomatik tanlanadi.

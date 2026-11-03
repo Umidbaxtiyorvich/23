@@ -72,6 +72,7 @@
           <label class="toggle" title="Javoblarni avtomatik o'qib berish">
             <input type="checkbox" id="auto-voice" /><span>🔊 Avto</span>
           </label>
+          <button class="btn small call-btn" id="btn-call" title="Ustoz bilan ovozli gaplashish">📞 Ovozli</button>
           <button class="btn small" id="btn-new">+ Yangi</button>
         </header>
 
@@ -194,6 +195,21 @@
         </label>
         <button class="btn wide">Boshlash</button>
       </form>
+    </div>
+  </div>
+
+  <!-- Jonli ovozli suhbat -->
+  <div class="call hidden" id="call" data-state="">
+    <div class="call-top"><b>Ustoz bilan ovozli suhbat</b><small>Gapiring — Ustoz eshitadi va ovoz bilan javob beradi</small></div>
+    <button class="call-orb" id="call-orb" aria-label="Tinglash / to'xtatish"><span class="logo big">U</span></button>
+    <p class="call-status" id="call-status"></p>
+    <p class="call-text" id="call-text"></p>
+    <div class="call-bottom">
+      <div class="chips" id="call-lang" title="Qaysi tilda gapiryapsiz?">
+        <button type="button" data-l="en-US" class="on">🇬🇧 English</button>
+        <button type="button" data-l="uz-UZ">🇺🇿 O'zbekcha</button>
+      </div>
+      <button class="btn bad" id="call-end">Tugatish</button>
     </div>
   </div>
 

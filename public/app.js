@@ -236,7 +236,7 @@
   let busy = false;
   async function sendMessage(text, opts = {}) {
     text = (text || "").trim();
-    if (!text || busy) return;
+    if (!text || busy) return "";
     let s = opts.session || cur() || newSession("chat");
     if (!S.current) S.current = s.id;
     const userMsg = { role: "user", content: text };
@@ -265,7 +265,7 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           messages: s.messages.map(({ role, content }) => ({ role, content })),
-          level: S.profile?.level, mode: s.mode, topic: s.topic, name: S.profile?.name,
+          level: S.profile?.level, mode: s.mode, topic: s.topic, name: S.profile?.name, voice: !!opts.voice,
         }),
       });
       if (!res.ok || !res.body) throw new Error((await res.json().catch(() => ({}))).error || "Server javob bermadi");
@@ -294,7 +294,8 @@
       save();
     }
     renderChat();
-    if (S.autoVoice && am.content) speakMessage(am.content);
+    if (S.autoVoice && am.content && !opts.voice) speakMessage(am.content);
+    return am.content;
   }
 
   const input = $("#input");
@@ -308,6 +309,99 @@
     const t = input.value; input.value = ""; autosize();
     sendMessage(t);
   });
+  // ---------- Jonli ovozli suhbat (qo'ng'iroq rejimi) ----------
+  const call = { on: false, rec: null, lang: "en-US", state: "" };
+  function setCallState(st, text) {
+    call.state = st;
+    $("#call").dataset.state = st;
+    $("#call-status").textContent = { listen: "Tinglayapman… gapiring", think: "O'ylayapman…", speak: "Ustoz gapiryapti… (to'xtatish uchun doirani bosing)" }[st] || "";
+    if (text !== undefined) $("#call-text").textContent = text;
+  }
+  function pickVoice(lang) {
+    const L = lang.slice(0, 2);
+    return voices.find((v) => v.lang.replace("_", "-") === lang) || voices.find((v) => v.lang.startsWith(L))
+      || (L === "uz" && voices.find((v) => v.lang.startsWith("tr"))) || null; // o'zbek ovozi bo'lmasa — turkcha ovoz lotin yozuvini yaxshi o'qiydi
+  }
+  function segments(text) {
+    return plain(text).split(/(?<=[.!?…])\s+|\n+/).map((x) => x.trim()).filter(Boolean)
+      .map((t) => ({ t, lang: EN_MARK.test(t) && !UZ_MARK.test(t) ? "en-US" : "uz-UZ" }));
+  }
+  function speakAll(text) {
+    return new Promise((resolve) => {
+      call.speakDone = resolve;
+      if (!("speechSynthesis" in window)) return resolve();
+      speechSynthesis.cancel();
+      const segs = segments(text);
+      if (!segs.length) return resolve();
+      let left = segs.length;
+      const slow = S.profile && ["A1", "A2"].includes(S.profile.level);
+      segs.forEach(({ t, lang }) => {
+        const u = new SpeechSynthesisUtterance(t);
+        u.lang = lang; u.rate = lang === "en-US" ? (slow ? 0.85 : 0.95) : 1;
+        const v = pickVoice(lang); if (v) { u.voice = v; u.lang = v.lang; }
+        u.onend = u.onerror = () => { if (--left <= 0) resolve(); };
+        speechSynthesis.speak(u);
+      });
+    });
+  }
+  function listen() {
+    if (!call.on) return;
+    const r = new SR();
+    call.rec = r;
+    r.lang = call.lang; r.interimResults = true; r.continuous = false;
+    let finalText = "";
+    setCallState("listen", "");
+    r.onresult = (e) => {
+      finalText = [...e.results].map((x) => x[0].transcript).join("");
+      $("#call-text").textContent = finalText;
+    };
+    r.onerror = (e) => {
+      if (e.error === "not-allowed" || e.error === "service-not-allowed") { toast("Mikrofonga ruxsat bering"); endCall(); }
+    };
+    r.onend = async () => {
+      if (call.rec !== r) return; // til almashtirilganda eski tinglovchi
+      call.rec = null;
+      if (!call.on) return;
+      if (!finalText.trim()) return setTimeout(listen, 250); // jimlik — yana tinglash
+      setCallState("think", finalText);
+      const reply = await sendMessage(finalText, { voice: true });
+      if (!call.on) return;
+      setCallState("speak", plain(reply));
+      await speakAll(reply);
+      if (call.on) listen();
+    };
+    try { r.start(); } catch { setTimeout(listen, 400); }
+  }
+  function startCall() {
+    if (!SR) return toast("Ovozli suhbat uchun Chrome yoki Edge brauzeridan foydalaning");
+    if (!cur()) newSession("chat", "", "Ovozli suhbat");
+    $("#call").classList.remove("hidden");
+    call.on = true;
+    // Brauzer ovozni yoqishi uchun foydalanuvchi bosgan paytda bo'sh gap aytamiz
+    try { speechSynthesis.speak(new SpeechSynthesisUtterance("")); } catch {}
+    listen();
+  }
+  function endCall() {
+    call.on = false;
+    const r = call.rec; call.rec = null;
+    try { r && r.abort(); } catch {}
+    try { speechSynthesis.cancel(); } catch {}
+    call.speakDone && call.speakDone();
+    $("#call").classList.add("hidden");
+    renderChat();
+  }
+  $("#btn-call").onclick = startCall;
+  $("#call-end").onclick = endCall;
+  $("#call-orb").onclick = () => {
+    if (call.state === "speak") { speechSynthesis.cancel(); call.speakDone && call.speakDone(); }
+    else if (call.state === "listen") { try { call.rec && call.rec.stop(); } catch {} }
+  };
+  $$("#call-lang button").forEach((b) => b.onclick = () => {
+    call.lang = b.dataset.l;
+    $$("#call-lang button").forEach((x) => x.classList.toggle("on", x === b));
+    if (call.state === "listen" && call.rec) { const r = call.rec; call.rec = null; try { r.abort(); } catch {} listen(); }
+  });
+
   $("#btn-new").onclick = () => { S.current = null; save(); renderChat(); };
   $("#auto-voice").onchange = (e) => { S.autoVoice = e.target.checked; save(); };
   $("#btn-sessions").onclick = () => $("#sessions").classList.add("open");
