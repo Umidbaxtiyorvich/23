@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Ingliz Ustoz</title>
+  <meta name="description" content="O'zbek tilida gaplashadigan AI ustoz bilan ingliz tilini o'rganing" />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+    <!-- Yon menyu (kompyuter) / pastki menyu (telefon) -->
+    <nav class="nav" aria-label="Asosiy menyu">
+      <div class="brand"><span class="logo">U</span><span>Ingliz Ustoz</span></div>
+      <button class="nav-btn" data-view="home"><span class="ic">🏠</span><span>Reja</span></button>
+      <button class="nav-btn" data-view="chat"><span class="ic">💬</span><span>Suhbat</span></button>
+      <button class="nav-btn" data-view="lessons"><span class="ic">📚</span><span>Darslar</span></button>
+      <button class="nav-btn" data-view="vocab"><span class="ic">🃏</span><span>Lug'at</span></button>
+      <button class="nav-btn" data-view="profile"><span class="ic">👤</span><span>Profil</span></button>
+    </nav>
+
+    <main class="main">
+      <!-- BOSH SAHIFA / KUNLIK REJA -->
+      <section class="view" id="view-home">
+        <header class="page-head">
+          <div>
+            <h1 id="hello">Salom!</h1>
+            <p class="muted" id="hello-sub">Bugungi rejangiz tayyor.</p>
+          </div>
+          <div class="streak" title="Ketma-ket kunlar"><span>🔥</span><b id="streak">0</b><small>kun</small></div>
+        </header>
+
+        <div class="stats">
+          <div class="stat"><b id="st-xp">0</b><span>XP</span></div>
+          <div class="stat"><b id="st-level">B1</b><span>Daraja</span></div>
+          <div class="stat"><b id="st-words">0</b><span>So'zlar</span></div>
+          <div class="stat"><b id="st-lessons">0</b><span>Darslar</span></div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <h2>Bugungi vazifalar</h2>
+            <span class="pill" id="daily-pct">0%</span>
+          </div>
+          <div class="progress"><div class="bar" id="daily-bar"></div></div>
+          <ul class="tasks" id="tasks"></ul>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><h2>Keyingi dars</h2><button class="link" data-goto="lessons">Barchasi →</button></div>
+          <div id="next-lesson"></div>
+        </div>
+
+        <div class="card">
+          <h2>Tez boshlash</h2>
+          <div class="quick" id="quick"></div>
+        </div>
+      </section>
+
+      <!-- SUHBAT -->
+      <section class="view chat-view" id="view-chat">
+        <header class="chat-head">
+          <button class="icon-btn only-mobile" id="btn-sessions" title="Suhbatlar">☰</button>
+          <div class="chat-title">
+            <b id="chat-title">Erkin suhbat</b>
+            <small class="muted" id="chat-sub">Ustoz · B1</small>
+          </div>
+          <label class="toggle" title="Javoblarni avtomatik o'qib berish">
+            <input type="checkbox" id="auto-voice" /><span>🔊 Avto</span>
+          </label>
+          <button class="btn small" id="btn-new">+ Yangi</button>
+        </header>
+
+        <div class="chat-body">
+          <aside class="sessions" id="sessions">
+            <div class="sessions-head"><b>Suhbatlar</b><button class="icon-btn only-mobile" id="close-sessions">✕</button></div>
+            <ul id="session-list"></ul>
+          </aside>
+
+          <div class="chat-main">
+            <div class="messages" id="messages" aria-live="polite"></div>
+            <div class="suggest" id="suggest"></div>
+            <form class="composer" id="composer">
+              <button type="button" class="icon-btn mic" id="mic" title="Ovoz bilan gapirish">🎤</button>
+              <select id="mic-lang" class="mic-lang" title="Ovoz tili">
+                <option value="en-US">EN</option>
+                <option value="uz-UZ">UZ</option>
+              </select>
+              <textarea id="input" rows="1" placeholder="Xabar yozing… (inglizcha yoki o'zbekcha)"></textarea>
+              <button class="btn send" id="send" type="submit" title="Yuborish">➤</button>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <!-- DARSLAR -->
+      <section class="view" id="view-lessons">
+        <header class="page-head"><div><h1>Darslar</h1><p class="muted">Darajangizga mos dasturiy reja. Har bir dars — Ustoz bilan jonli suhbat.</p></div></header>
+        <div class="tabs" id="level-tabs"></div>
+        <div id="lesson-list" class="lesson-list"></div>
+      </section>
+
+      <!-- LUG'AT -->
+      <section class="view" id="view-vocab">
+        <header class="page-head">
+          <div><h1>Lug'at</h1><p class="muted">Suhbatlarda uchragan so'zlar shu yerga yig'iladi.</p></div>
+          <button class="btn" id="btn-review">Takrorlash (<span id="due-count">0</span>)</button>
+        </header>
+        <form class="add-word" id="add-word">
+          <input id="w-en" placeholder="English so'z" required />
+          <input id="w-uz" placeholder="O'zbekcha tarjima" required />
+          <button class="btn small">Qo'shish</button>
+        </form>
+        <div class="flash hidden" id="flash">
+          <div class="flash-card" id="flash-card">
+            <div class="flash-front" id="flash-front"></div>
+            <div class="flash-back hidden" id="flash-back"></div>
+          </div>
+          <div class="flash-actions" id="flash-show"><button class="btn" id="btn-flip">Javobni ko'rish</button></div>
+          <div class="flash-actions hidden" id="flash-grade">
+            <button class="btn bad" data-grade="0">Bilmadim</button>
+            <button class="btn ok" data-grade="1">Qiyin</button>
+            <button class="btn good" data-grade="2">Bilaman</button>
+          </div>
+          <button class="link" id="btn-end-review">Takrorlashni tugatish</button>
+        </div>
+        <ul class="words" id="words"></ul>
+      </section>
+
+      <!-- PROFIL -->
+      <section class="view" id="view-profile">
+        <header class="page-head"><div><h1>Profil</h1><p class="muted">Sozlamalar faqat shu qurilmada saqlanadi.</p></div></header>
+        <form class="card form" id="profile-form">
+          <label>Ismingiz<input id="p-name" maxlength="40" placeholder="Masalan: Umid" /></label>
+          <label>Hozirgi darajangiz
+            <select id="p-level">
+              <option value="A1">A1 — Boshlang'ich</option>
+              <option value="A2">A2 — Elementar</option>
+              <option value="B1">B1 — O'rta</option>
+              <option value="B2">B2 — O'rtadan yuqori</option>
+              <option value="C1">C1 — Yuqori</option>
+            </select>
+          </label>
+          <label>Maqsadingiz
+            <select id="p-goal">
+              <option value="study">O'qish (IELTS, chet elda ta'lim)</option>
+              <option value="work">Ish va karyera</option>
+              <option value="travel">Sayohat</option>
+              <option value="talk">Erkin gaplashish</option>
+            </select>
+          </label>
+          <label>Kunlik maqsad
+            <select id="p-daily">
+              <option value="10">Yengil — 10 daqiqa</option>
+              <option value="20">O'rtacha — 20 daqiqa</option>
+              <option value="30">Jiddiy — 30+ daqiqa</option>
+            </select>
+          </label>
+          <button class="btn">Saqlash</button>
+        </form>
+        <div class="card">
+          <h2>Ma'lumotlar</h2>
+          <p class="muted">Barcha suhbatlar, lug'at va natijalarni o'chirish.</p>
+          <button class="btn bad" id="btn-reset">Hammasini o'chirish</button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Birinchi kirish: tanishuv -->
+  <div class="modal hidden" id="onboard">
+    <div class="modal-box">
+      <div class="logo big">U</div>
+      <h2>Xush kelibsiz!</h2>
+      <p class="muted">Men — Ustoz. Siz bilan o'zbek tilida gaplashib, ingliz tilini o'rgataman. Keling, tanishib olamiz.</p>
+      <form id="onboard-form" class="form">
+        <label>Ismingiz<input id="o-name" maxlength="40" required placeholder="Ismingiz" /></label>
+        <label>Darajangiz
+          <div class="chips" id="o-levels">
+            <button type="button" data-v="A1">A1</button><button type="button" data-v="A2">A2</button>
+            <button type="button" data-v="B1" class="on">B1</button><button type="button" data-v="B2">B2</button>
+            <button type="button" data-v="C1">C1</button>
+          </div>
+        </label>
+        <label>Maqsadingiz
+          <div class="chips" id="o-goals">
+            <button type="button" data-v="study" class="on">🎓 O'qish</button><button type="button" data-v="work">💼 Ish</button>
+            <button type="button" data-v="travel">✈️ Sayohat</button><button type="button" data-v="talk">🗣 Suhbat</button>
+          </div>
+        </label>
+        <button class="btn wide">Boshlash</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="toast hidden" id="toast"></div>
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

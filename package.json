@@ -1,0 +1,15 @@
+{
+  "name": "ingliz-ustoz",
+  "version": "1.0.0",
+  "description": "O'zbek tilida gaplashadigan AI ingliz tili ustozi",
+  "main": "server.js",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": { "node": ">=18" },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.4.0"
+  }
+}
