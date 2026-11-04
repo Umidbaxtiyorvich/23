@@ -174,7 +174,10 @@ def run() -> None:
     try:
         seed_tests(db)
         seed_vocab(db)
-        _user(db, settings.admin_email, settings.admin_password, "Administrator", admin=True)
+        if settings.is_production and settings.admin_password == "Admin12345!":
+            log.warning("Production: ADMIN_PASSWORD standart qiymatda — admin hisobi yaratilmadi. ADMIN_PASSWORD ni o'rnating.")
+        else:
+            _user(db, settings.admin_email, settings.admin_password, "Administrator", admin=True)
         db.commit()
         if settings.seed_demo_data:
             for d in DEMO_USERS:

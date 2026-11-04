@@ -1,0 +1,36 @@
+# Render Blueprint: Dashboard → New → Blueprint → shu repozitoriyni tanlang.
+# Yaratiladi: PostgreSQL baza + bitta Docker web-servis (frontend + backend birga).
+databases:
+  - name: ielts-db
+    plan: free
+    databaseName: ielts_ai_master
+    user: ielts
+
+services:
+  - type: web
+    name: ielts-ai-master
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: ielts-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ENVIRONMENT
+        value: production
+      - key: AI_PROVIDER
+        value: gemini
+      - key: GEMINI_MODEL
+        value: gemini-3.5-flash
+      - key: GEMINI_API_KEY      # deploy paytida Render so'raydi — kalitni shu yerga kiriting
+        sync: false
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD      # kuchli parol qo'ying
+        sync: false
+      - key: SEED_DEMO_DATA
+        value: "false"

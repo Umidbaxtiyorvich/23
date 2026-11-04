@@ -124,21 +124,35 @@ def chat(db: Session, messages: list[dict[str, str]], *, json_mode: bool = False
     }
     if json_mode:
         body["response_format"] = {"type": "json_object"}
-    try:
-        r = httpx.post(f"{cfg.base_url}/chat/completions", json=body, timeout=settings.ai_timeout_seconds,
-                       headers={"Authorization": f"Bearer {cfg.api_key}"})
-    except httpx.HTTPError as e:
-        raise AIError(f"{cfg.label} bilan bog'lanib bo'lmadi: {e.__class__.__name__}") from e
+    if cfg.name == "gemini":
+        # Gemini 2.5+/3.x modellari "o'ylash" tokenlarini ham max_tokens dan sarflaydi —
+        # o'ylashni past darajada ushlab, javob uchun zaxira qoldiramiz
+        body["reasoning_effort"] = "low"
+        body["max_tokens"] = max_tokens + 2048
+    for attempt in range(2):  # 503 (vaqtinchalik band) bo'lsa bir marta qayta urinamiz
+        try:
+            r = httpx.post(f"{cfg.base_url}/chat/completions", json=body, timeout=settings.ai_timeout_seconds,
+                           headers={"Authorization": f"Bearer {cfg.api_key}"})
+        except httpx.HTTPError as e:
+            raise AIError(f"{cfg.label} bilan bog'lanib bo'lmadi: {e.__class__.__name__}") from e
+        if r.status_code != 503 or attempt:
+            break
+        time.sleep(1.5)
     if r.status_code >= 400:
         msg = r.text[:300]
         log.warning("AI %s xato %s: %s", cfg.name, r.status_code, msg)
         if r.status_code in (401, 403):
             raise AIError(f"{cfg.label} API kaliti noto'g'ri yoki ruxsat yo'q")
+        if r.status_code == 503:
+            raise AIError(f"{cfg.label} hozir band (503), birozdan so'ng urinib ko'ring")
         if r.status_code == 429:
             raise AIError(f"{cfg.label} limiti tugadi, keyinroq urinib ko'ring")
         raise AIError(f"{cfg.label} xatosi ({r.status_code})")
     try:
-        text = r.json()["choices"][0]["message"]["content"] or ""
+        choice = r.json()["choices"][0]
+        text = choice["message"].get("content") or ""
+        if choice.get("finish_reason") == "length":
+            log.warning("AI javobi max_tokens tufayli qisqartirildi (%s)", cfg.model)
     except (KeyError, IndexError, ValueError) as e:
         raise AIError("AI javobini o'qib bo'lmadi") from e
     return text, cfg
@@ -204,7 +218,7 @@ def ping(db: Session, provider: str) -> dict[str, Any]:
     t0 = time.monotonic()
     try:
         text, cfg = chat(db, [{"role": "user", "content": "Reply with the single word: OK"}],
-                         max_tokens=5, temperature=0, provider=provider)
+                         max_tokens=16, temperature=0, provider=provider)
         return {"ok": True, "provider": provider, "model": cfg.model, "latency_ms": int((time.monotonic() - t0) * 1000),
                 "reply": text.strip()[:40]}
     except (AIUnavailable, AIError) as e:

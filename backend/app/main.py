@@ -7,6 +7,7 @@ from __future__ import annotations
 import logging
 import traceback
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
@@ -104,6 +105,21 @@ for r in (auth.router, profile.router, insights.public_router, insights.dashboar
     app.include_router(r)
 
 
-@app.get("/", include_in_schema=False)
-def root():
-    return {"name": settings.app_name, "docs": "/docs", "health": "/api/health"}
+# ---- Frontend (React build) ni shu serverning o'zidan berish — bitta xizmatli deploy uchun
+STATIC_DIR = Path(settings.static_dir or Path(__file__).resolve().parents[2] / "frontend" / "dist")
+
+if (STATIC_DIR / "index.html").is_file():
+    from fastapi.responses import FileResponse
+
+    @app.get("/{full_path:path}", include_in_schema=False)
+    def spa(full_path: str):
+        if full_path.startswith(("api/", "docs", "redoc", "openapi.json")):
+            raise StarletteHTTPException(404, "Topilmadi")
+        f = (STATIC_DIR / full_path).resolve()
+        if full_path and f.is_file() and STATIC_DIR.resolve() in f.parents:
+            return FileResponse(f)
+        return FileResponse(STATIC_DIR / "index.html")
+else:
+    @app.get("/", include_in_schema=False)
+    def root():
+        return {"name": settings.app_name, "docs": "/docs", "health": "/api/health"}

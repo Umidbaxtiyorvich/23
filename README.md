@@ -48,6 +48,15 @@ Vite `/api` so'rovlarini `http://localhost:8000` ga proksi qiladi. Production bu
 - ReDoc: http://localhost:8000/redoc
 - Health: http://localhost:8000/api/health
 
+### Internetga joylash (Render, bir tugma bilan)
+Repozitoriyda `Dockerfile` va `render.yaml` bor. Docker frontend'ni build qiladi va uni backend bilan birga **bitta servis** sifatida beradi, shuning uchun CORS sozlash shart emas.
+1. https://render.com da GitHub orqali ro'yxatdan o'ting.
+2. **New → Blueprint** bosing va shu repozitoriyni tanlang. Render `render.yaml` ni o'qib, PostgreSQL bazasi va web-servisni o'zi yaratadi.
+3. Render so'raydigan maydonlarni to'ldiring: `GEMINI_API_KEY`, `ADMIN_EMAIL` va kuchli `ADMIN_PASSWORD`.
+4. Deploy tugagach sayt `https://ielts-ai-master.onrender.com` ko'rinishidagi manzilda ochiladi. Swagger o'sha manzilning `/docs` sahifasida.
+
+Docker'ni qo'llaydigan boshqa hosting (Railway, Fly.io, VPS) ham ishlaydi: `DATABASE_URL`, `JWT_SECRET`, `ENVIRONMENT=production`, `GEMINI_API_KEY` va `ADMIN_PASSWORD` ni bering.
+
 ### Demo hisoblar (`SEED_DEMO_DATA=true`)
 | Rol | Email | Parol |
 |---|---|---|
@@ -71,6 +80,7 @@ AI_PROVIDER=groq          # groq | openai | gemini | none
 GROQ_API_KEY=...
 OPENAI_API_KEY=...
 GEMINI_API_KEY=...
+GEMINI_MODEL=gemini-3.5-flash
 ```
 Provayder va modelni **Admin panel → AI & sozlamalar** dan almashtirish mumkin. U yerdagi «API holatini tekshirish» tugmasi provayderga test so'rov yuboradi.
 **Kalit bo'lmasa sayt to'xtamaydi.** Bunday holatda AI funksiyalar demo rejimga o'tadi: matn tahliliga asoslangan heuristik baholash ishlaydi va natija interfeysda `DEMO` belgisi bilan ko'rsatiladi.

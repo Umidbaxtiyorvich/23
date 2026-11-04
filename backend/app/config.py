@@ -1,5 +1,6 @@
 from functools import lru_cache
 
+from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -32,7 +33,7 @@ class Settings(BaseSettings):
     openai_model: str = "gpt-4o-mini"
     openai_stt_model: str = "whisper-1"
     gemini_api_key: str = ""
-    gemini_model: str = "gemini-2.0-flash"
+    gemini_model: str = "gemini-3.5-flash"
     ai_timeout_seconds: float = 60.0
 
     # Email (SMTP). Bo'sh bo'lsa — dev rejim: havolalar logga yoziladi
@@ -60,6 +61,25 @@ class Settings(BaseSettings):
     admin_password: str = "Admin12345!"
 
     upload_dir: str = "uploads"
+    static_dir: str = ""  # bo'sh bo'lsa ../frontend/dist (mavjud bo'lsa) ishlatiladi
+    render_external_url: str = ""  # Render avtomatik beradi
+
+    @field_validator("database_url")
+    @classmethod
+    def _db_driver(cls, v: str) -> str:
+        # Render/Heroku "postgres://" yoki "postgresql://" beradi — psycopg3 drayverini qo'shamiz
+        for prefix in ("postgres://", "postgresql://"):
+            if v.startswith(prefix):
+                return "postgresql+psycopg://" + v[len(prefix):]
+        return v
+
+    @model_validator(mode="after")
+    def _hosted_urls(self):
+        # hostingda sayt manzili avtomatik aniqlansin (email havolalari va CORS uchun)
+        if self.render_external_url and "localhost" in self.frontend_url:
+            self.frontend_url = self.render_external_url.rstrip("/")
+            self.cors_origins = f"{self.cors_origins},{self.frontend_url}"
+        return self
 
     @property
     def cors_origin_list(self) -> list[str]:
