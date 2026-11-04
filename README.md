@@ -51,8 +51,8 @@ Vite `/api` so'rovlarini `http://localhost:8000` ga proksi qiladi. Production bu
 ### Internetga joylash (Render, bir tugma bilan)
 Repozitoriyda `Dockerfile` va `render.yaml` bor. Docker frontend'ni build qiladi va uni backend bilan birga **bitta servis** sifatida beradi, shuning uchun CORS sozlash shart emas.
 1. https://render.com da GitHub orqali ro'yxatdan o'ting.
-2. **New → Blueprint** bosing va shu repozitoriyni tanlang. Render `render.yaml` ni o'qib, PostgreSQL bazasi va web-servisni o'zi yaratadi.
-3. Render so'raydigan maydonlarni to'ldiring: `GEMINI_API_KEY`, `ADMIN_EMAIL` va kuchli `ADMIN_PASSWORD`.
+2. **New → Blueprint** bosing va shu repozitoriyni tanlang. Render `render.yaml` ni o'qib web-servisni yaratadi. Yangi baza yaratilmaydi: bepul tarifda bitta hisobga faqat bitta bepul baza beriladi.
+3. Render so'raydigan maydonlarni to'ldiring: `DATABASE_URL` (mavjud PostgreSQL bazangizning **External Database URL** manzili), `GEMINI_API_KEY`, `ADMIN_EMAIL` va kuchli `ADMIN_PASSWORD`. Jadvallar o'sha bazada alohida `ielts` schema ichida yaratiladi (`DB_SCHEMA=ielts`), shuning uchun bazadagi boshqa jadvallarga tegilmaydi.
 4. Deploy tugagach sayt `https://ielts-ai-master.onrender.com` ko'rinishidagi manzilda ochiladi. Swagger o'sha manzilning `/docs` sahifasida.
 
 Docker'ni qo'llaydigan boshqa hosting (Railway, Fly.io, VPS) ham ishlaydi: `DATABASE_URL`, `JWT_SECRET`, `ENVIRONMENT=production`, `GEMINI_API_KEY` va `ADMIN_PASSWORD` ni bering.

@@ -1,3 +1,4 @@
+import re
 from functools import lru_cache
 
 from pydantic import field_validator, model_validator
@@ -14,6 +15,9 @@ class Settings(BaseSettings):
     debug: bool = False
 
     database_url: str = "postgresql+psycopg://ielts:ielts@localhost:5432/ielts_ai_master"
+    # Bo'sh bo'lmasa barcha jadvallar shu PostgreSQL schema ichida saqlanadi
+    # (boshqa ilova bilan umumiy bazadan foydalanganda jadval nomlari to'qnashmasligi uchun)
+    db_schema: str = ""
 
     # JWT
     jwt_secret: str = "change-me-in-production-please-use-a-long-random-string"
@@ -71,6 +75,14 @@ class Settings(BaseSettings):
         for prefix in ("postgres://", "postgresql://"):
             if v.startswith(prefix):
                 return "postgresql+psycopg://" + v[len(prefix):]
+        return v
+
+    @field_validator("db_schema")
+    @classmethod
+    def _schema_name(cls, v: str) -> str:
+        v = v.strip()
+        if v and not re.fullmatch(r"[a-z_][a-z0-9_]{0,40}", v):
+            raise ValueError("DB_SCHEMA faqat kichik lotin harflari, raqam va _ dan iborat bo'lsin")
         return v
 
     @model_validator(mode="after")

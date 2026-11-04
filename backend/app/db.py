@@ -5,7 +5,13 @@ from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
 from .config import settings
 
-engine = create_engine(settings.database_url, pool_pre_ping=True, future=True)
+def engine_kwargs() -> dict:
+    if settings.db_schema:
+        return {"connect_args": {"options": f"-csearch_path={settings.db_schema}"}}
+    return {}
+
+
+engine = create_engine(settings.database_url, pool_pre_ping=True, future=True, **engine_kwargs())
 SessionLocal = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
 
 
